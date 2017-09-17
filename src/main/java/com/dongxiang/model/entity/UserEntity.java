@@ -1,11 +1,8 @@
 package com.dongxiang.model.entity;
 
-import com.dongxiang.model.entity.VideoEntity;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Created by dzkan on 2016/3/8.

@@ -2,21 +2,27 @@ package com.dongxiang.controller;
 
 import com.dongxiang.base.comm.ApiData;
 import com.dongxiang.model.comm.*;
+import com.dongxiang.model.component.UploadComponent;
+import com.dongxiang.model.entity.FileEntity;
 import com.dongxiang.model.entity.StatisticsEntity;
 import com.dongxiang.model.entity.VideoEntity;
 import com.dongxiang.model.repository.StatisticsRepository;
 import com.dongxiang.model.repository.VideoRepository;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@RequestMapping("/aidongxiang")
+//@RequestMapping("/aidongxiang")
 @Controller
 public class VideoController {
 
@@ -24,13 +30,15 @@ public class VideoController {
     VideoRepository videoRepository;
     @Autowired
     StatisticsRepository statisticsRepository;
+    @Autowired
+    UploadComponent uploadComponent;
 
     private static Logger logger = LoggerFactory.getLogger(VideoController.class);
 
     @RequestMapping(value = "/VideoList", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody /*只需要响应字符串内容，可以自由控制返回的数据内容*/
     public String requestVideoList(){
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         List<VideoEntity> list = videoRepository.findAll();
         List<VideoListEntity> entitylist = new ArrayList<>();
         for (VideoEntity videoEntity: list){
@@ -56,9 +64,9 @@ public class VideoController {
         return gson.toJson(new ApiData<>(respBody));
     }
 
-//    @RequestMapping(value = "/VideoSubmit", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+//    @RequestMapping(value = "/VideoSubmit2", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
 //    @ResponseBody /*只需要响应字符串内容，可以自由控制返回的数据内容*/
-//    public String requestVideoSubmit(@ModelAttribute("json")  VideoEntity video){
+//    public String requestVideoSubmit2(@ModelAttribute("json")  VideoEntity video){
 //
 //        Gson gson = new Gson();
 //        logger.warn("video:"+gson.toJson(video));
@@ -75,9 +83,9 @@ public class VideoController {
 //        }
 //        return gson.toJson(new ApiData("VideoSubmit",defaultRespBody));
 //    }
-    @RequestMapping(value = "/VideoSubmit2", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @RequestMapping(value = "/VideoSubmit", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody /*只需要响应字符串内容，可以自由控制返回的数据内容*/
-    public String requestVideoSubmit2(@RequestParam("json")  String video){
+    public String requestVideoSubmit(@RequestParam("json")  String video){
 
         Gson gson = new Gson();
         DefaultRespBody defaultRespBody = new DefaultRespBody();
@@ -97,7 +105,7 @@ public class VideoController {
     @RequestMapping(value = "/VideoDetails/{id}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody /*只需要响应字符串内容，可以自由控制返回的数据内容*/
     public String requestVideoDetails(@PathVariable("id") int id){
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         VideoDetailsRespBody respBody = new VideoDetailsRespBody();
 
         VideoEntity video = videoRepository.findOne(id);
@@ -147,7 +155,7 @@ public class VideoController {
     @RequestMapping(value = "/VideoDownload/{id}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody /*只需要响应字符串内容，可以自由控制返回的数据内容*/
     public String requestDownload(@PathVariable("id") int id){
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         DefaultRespBody respBody = new DefaultRespBody();
         try {
             StatisticsEntity statistics = statisticsRepository.findOne(id);
@@ -177,7 +185,7 @@ public class VideoController {
     @RequestMapping(value = "/VideoPraise/{id}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody /*只需要响应字符串内容，可以自由控制返回的数据内容*/
     public String requestPraise(@PathVariable("id") int id){
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         DefaultRespBody respBody = new DefaultRespBody();
         try {
             StatisticsEntity statistics = statisticsRepository.findOne(id);
@@ -198,6 +206,56 @@ public class VideoController {
         }
 
         return gson.toJson(new ApiData<>("PraiseVideo",respBody));
+    }
+
+
+    @RequestMapping(value = "/UploadVideo", method = RequestMethod.POST, produces = "application/json; charset=utf-8")
+//    @ResponseBody
+    public String uploadVideo(HttpServletRequest request, ModelMap modelMap) throws IllegalStateException, IOException
+    {
+        String fileDir = "/videos/";
+        //上传文件保存
+        List<FileEntity> files = uploadComponent.upload(request,fileDir);
+
+        if(files.size() > 0){
+            //下面是存储视频数据
+            modelMap.addAttribute("text", "上传成功");
+            float price = 0f;
+            int isCharge = 0;
+            try {
+                isCharge = Integer.parseInt(request.getParameter("isCharge"));
+            } catch (NumberFormatException e){
+                e.printStackTrace();
+            }
+
+            try {
+                price = Float.parseFloat(request.getParameter("price"));
+            } catch (NumberFormatException e){
+                e.printStackTrace();
+            }
+            String description = request.getParameter("description");
+
+            VideoEntity videoEntity = new VideoEntity();
+            videoEntity.setDescription(description);
+            videoEntity.setPrice(price);
+            videoEntity.setIsCharge(isCharge);
+            for (FileEntity file : files){
+                videoEntity.setName(file.getName());
+                videoEntity.setPath(file.getPath());
+                videoEntity.setDuration(file.getDuration());
+            }
+            videoRepository.save(videoEntity);
+        } else {
+            modelMap.addAttribute("text", "上传失败");
+        }
+        return "upload/uploadResult";
+    }
+
+
+    // 上传图片
+    @RequestMapping(value = "/jspUploadVideo", method = RequestMethod.GET)
+    public String uploadFile(ModelMap modelMap) {
+        return "upload/uploadVideo";
     }
 
 }

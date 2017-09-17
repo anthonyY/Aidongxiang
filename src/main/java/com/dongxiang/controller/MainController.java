@@ -1,20 +1,11 @@
 package com.dongxiang.controller;
 
-import com.aiitec.base.model.comm.ApiData;
-import com.aiitec.demo.model.app.LoginApp;
-import com.aiitec.demo.model.comm.UserRespBody;
-import com.aiitec.demo.model.component.UserInfoComponent;
 import com.dongxiang.model.repository.UserRepository;
-import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by dzkan on 2016/3/8.
