@@ -12,19 +12,28 @@ public class FileEntity {
 
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy=GenerationType.AUTO)
     private int id;
+    private int type;
     private long duration;
     private String name;
     private String md5;
     private String path;
 
+////    @ManyToMany(mappedBy="images" , fetch = FetchType.LAZY)
+//    @ManyToMany(cascade = {CascadeType.ALL /*,CascadeType.MERGE*/ }, fetch = FetchType.LAZY)
+//    @JoinTable(name = "post_image",
+//            joinColumns = {@JoinColumn(name = "file_id")},
+//            inverseJoinColumns = {@JoinColumn(name = "post_id")})
+//    public List<PostEntity> posts;
+
 //    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "images")
-    @ManyToMany(cascade = {CascadeType.REFRESH ,CascadeType.MERGE }, fetch = FetchType.LAZY)
-    @JoinTable(name = "Feedback_Image",
-        joinColumns = {@JoinColumn(name = "image_id")},
-        inverseJoinColumns = {@JoinColumn(name = "feedback_id")})
-    private List<FeedbackEntity> feedbacks;
+//    @ManyToMany(cascade = {CascadeType.REFRESH ,CascadeType.MERGE }, fetch = FetchType.EAGER)
+//    @JoinTable(name = "Feedback_Image",
+//        joinColumns = {@JoinColumn(name = "file_id")},
+//        inverseJoinColumns = {@JoinColumn(name = "feedback_id")})
+////    @ManyToMany(mappedBy="images")
+//    private List<FeedbackEntity> feedbacks;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private Date timestamp;
@@ -77,11 +86,27 @@ public class FileEntity {
         this.duration = duration;
     }
 
-    public List<FeedbackEntity> getFeedbacks() {
-        return feedbacks;
+//    public List<FeedbackEntity> getFeedbacks() {
+//        return feedbacks;
+//    }
+//
+//    public void setFeedbacks(List<FeedbackEntity> feedbacks) {
+//        this.feedbacks = feedbacks;
+//    }
+
+//    public List<PostEntity> getPosts() {
+//        return posts;
+//    }
+//
+//    public void setPosts(List<PostEntity> posts) {
+//        this.posts = posts;
+//    }
+
+    public int getType() {
+        return type;
     }
 
-    public void setFeedbacks(List<FeedbackEntity> feedbacks) {
-        this.feedbacks = feedbacks;
+    public void setType(int type) {
+        this.type = type;
     }
 }

@@ -20,8 +20,8 @@ public interface UploadFileRepository extends JpaRepository<FileEntity, Integer>
     @Transactional  // 说明该方法是事务性操作
     // 定义查询
     // @Param注解用于提取参数
-    @Query("update FileEntity file set file.name=:qName, file.md5=:qMd5, file.timestamp=:qTimestamp where file.id=:qId")
-    public void updateUser(@Param("qName") String name, @Param("qMd5") String md5,
+    @Query("update FileEntity file set file.name=:qName, file.md5=:qMd5, file.type=:qType, file.timestamp=:qTimestamp where file.id=:qId")
+    public void updateUser(@Param("qName") String name, @Param("qMd5") String md5, @Param("qType") int type,
                            @Param("qTimestamp") Date timestamp, @Param("qId") Integer id);
 
 
@@ -29,4 +29,10 @@ public interface UploadFileRepository extends JpaRepository<FileEntity, Integer>
     public List<FileEntity> findByMd5s(@Param("qMd5s") List<String> md5s);
     @Query("select file from FileEntity file where file.md5 =:qMd5 ")
     public List<FileEntity> findByMd5(@Param("qMd5") String md5);
+    @Query("select file from FileEntity file where file.type =1 ")
+    public List<FileEntity> findImageFiles();
+    @Query("select file from FileEntity file where file.type =2 ")
+    public List<FileEntity> findVideoFiles();
+    @Query("select file from FileEntity file where file.type =3 ")
+    public List<FileEntity> findAudioFiles();
 }

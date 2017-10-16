@@ -4,9 +4,9 @@ import com.dongxiang.base.comm.ApiData;
 import com.dongxiang.model.comm.*;
 import com.dongxiang.model.component.UploadComponent;
 import com.dongxiang.model.entity.FileEntity;
-import com.dongxiang.model.entity.StatisticsEntity;
+import com.dongxiang.model.entity.StatisticsVideoEntity;
 import com.dongxiang.model.entity.VideoEntity;
-import com.dongxiang.model.repository.StatisticsRepository;
+import com.dongxiang.model.repository.StatisticsVideoRepository;
 import com.dongxiang.model.repository.VideoRepository;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,7 +29,7 @@ public class VideoController {
     @Autowired
     VideoRepository videoRepository;
     @Autowired
-    StatisticsRepository statisticsRepository;
+    StatisticsVideoRepository statisticsRepository;
     @Autowired
     UploadComponent uploadComponent;
 
@@ -41,24 +41,30 @@ public class VideoController {
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         List<VideoEntity> list = videoRepository.findAll();
         List<VideoListEntity> entitylist = new ArrayList<>();
-        for (VideoEntity videoEntity: list){
-            VideoListEntity entity = new VideoListEntity();
-            entity.setDuration(videoEntity.duration);
-            entity.setId(videoEntity.id);
-            entity.setImagePath(videoEntity.imagePath);
-            entity.setName(videoEntity.name);
-            entity.setPath(videoEntity.path);
-            entity.setPrice(videoEntity.price);
-            StatisticsEntity statistics = statisticsRepository.findOne(videoEntity.getId());
-            if(statistics != null){
+        int total = 0;
+        if(list != null){
+            total = list.size();
+            for (VideoEntity videoEntity: list){
+                VideoListEntity entity = new VideoListEntity();
+                entity.setDuration(videoEntity.duration);
+                entity.setId(videoEntity.id);
+                entity.setImagePath(videoEntity.imagePath);
+                entity.setName(videoEntity.name);
+                entity.setPath(videoEntity.path);
+                entity.setPrice(videoEntity.price);
+                StatisticsVideoEntity statistics = statisticsRepository.findOne(videoEntity.getId());
+                if(statistics != null){
 //                statistics.getStatDownload();
-                entity.setStatPraise(statistics.getStatPraise());
-                entity.setStatWatch(statistics.getStatWatch());
+                    entity.setStatPraise(statistics.getStatPraise());
+                    entity.setStatWatch(statistics.getStatWatch());
+                }
+                entitylist.add(entity);
             }
-            entitylist.add(entity);
         }
 
+
         VideoListRespBody respBody = new VideoListRespBody(entitylist);
+        respBody.setTotal(total);
         respBody.status = 0;
         respBody.desc = "操作成功";
         return gson.toJson(new ApiData<>(respBody));
@@ -119,7 +125,7 @@ public class VideoController {
             entity.setName(video.name);
             entity.setPath(video.path);
             entity.setPrice(video.price);
-            StatisticsEntity statistics = statisticsRepository.findOne(video.getId());
+            StatisticsVideoEntity statistics = statisticsRepository.findOne(video.getId());
             if(statistics != null){
                 entity.setStatDownload(statistics.getStatDownload());
                 entity.setStatPraise(statistics.getStatPraise());
@@ -127,7 +133,7 @@ public class VideoController {
                 entity.setStatWatch(statWatch);
                 statisticsRepository.updateStatisticsWatch(statWatch, video.id);
             } else {
-                statistics = new StatisticsEntity();
+                statistics = new StatisticsVideoEntity();
                 entity.setStatDownload(0);
                 entity.setStatPraise(0);
                 int statWatch = statistics.getStatWatch()+1;
@@ -158,12 +164,12 @@ public class VideoController {
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         DefaultRespBody respBody = new DefaultRespBody();
         try {
-            StatisticsEntity statistics = statisticsRepository.findOne(id);
+            StatisticsVideoEntity statistics = statisticsRepository.findOne(id);
             if(statistics != null){
                 int statDownload = statistics.getStatDownload()+1;
                 statisticsRepository.updateStatisticsDownload(statDownload, id);
             } else {
-                statistics = new StatisticsEntity();
+                statistics = new StatisticsVideoEntity();
                 statistics.setStatDownload(1);
                 statisticsRepository.save(statistics);
             }
@@ -188,13 +194,13 @@ public class VideoController {
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         DefaultRespBody respBody = new DefaultRespBody();
         try {
-            StatisticsEntity statistics = statisticsRepository.findOne(id);
+            StatisticsVideoEntity statistics = statisticsRepository.findOne(id);
             if(statistics != null){
                 int statPraise = statistics.getStatPraise()+1;
                 statisticsRepository.updateStatisticsPraise(statPraise, id);
             } else {
-                statistics = new StatisticsEntity();
-                statistics.setStatDownload(1);
+                statistics = new StatisticsVideoEntity();
+                statistics.setStatPraise(1);
                 statisticsRepository.save(statistics);
             }
             respBody.status = 0;
@@ -215,7 +221,7 @@ public class VideoController {
     {
         String fileDir = "/videos/";
         //上传文件保存
-        List<FileEntity> files = uploadComponent.upload(request,fileDir);
+        List<FileEntity> files = uploadComponent.upload(request,fileDir, 2);
 
         if(files.size() > 0){
             //下面是存储视频数据

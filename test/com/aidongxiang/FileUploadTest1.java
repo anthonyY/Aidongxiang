@@ -72,7 +72,7 @@ public class FileUploadTest1 {
             }
         }
         reqBody.setMd5s(md5s);
-        reqBody.action = 4;
+        reqBody.action = 99;
         ApiData<FileUploadReqBody> apiData = new ApiData<>(reqBody);
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         String json = gson.toJson(apiData);

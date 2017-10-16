@@ -5,4 +5,5 @@ import com.google.gson.annotations.SerializedName;
 public class AbstractReqBody {
     @SerializedName("a")
     public int action=1;
+    public int id;
 }

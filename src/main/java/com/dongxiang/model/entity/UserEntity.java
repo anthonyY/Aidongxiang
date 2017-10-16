@@ -10,6 +10,9 @@ import java.io.Serializable;
 @Entity
 @Table(name = "user", schema = "aidongxiang", catalog = "")
 public class UserEntity implements Serializable{
+
+    @Id
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private int id;
     private String nickname;
     private String password;

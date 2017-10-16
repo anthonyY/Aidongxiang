@@ -52,13 +52,14 @@ public class OkCallback implements Callback {
     @Override
     public void onResponse(Call call, Response response) throws IOException {
         String responseContent = response.body().string();
-        logger.warn(responseContent);
+        logger.info(JsonUtils.formatJson(responseContent));
         int code = response.code();
         if (code == 200) {
             Object t = aiiResponse.get();
             if(t.getClass() == String.class){
 
                 t = responseContent;
+                onSuccess(t);
             } else if(AbstractRespBody.class.isAssignableFrom(t.getClass())){
                 JSONObject jsonObject = null;
                 try {

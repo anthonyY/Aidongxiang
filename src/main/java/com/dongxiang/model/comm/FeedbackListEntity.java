@@ -1,32 +1,20 @@
-package com.dongxiang.model.entity;
+package com.dongxiang.model.comm;
 
+import com.dongxiang.model.comm.model.Image;
+import com.dongxiang.model.entity.UserEntity;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-@Entity
-@Table(name = "feedback", schema = "aidongxiang", catalog = "")
-public class FeedbackEntity implements Serializable{
+public class FeedbackListEntity {
 
-    @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
     public int id;
-
     public String contact;
     public String content;
-    @ManyToMany(cascade = {CascadeType.REFRESH, CascadeType.MERGE}, fetch = FetchType.EAGER)
-    @JoinTable(name = "Feedback_Image",
-            joinColumns = {@JoinColumn(name = "feedback_id")},
-            inverseJoinColumns = {@JoinColumn(name = "file_id")})
-//    @ManyToMany(mappedBy="feedbacks")
-    public List<FileEntity> images;
+    public List<Image> images;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     public Date timestamp;
-    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH }, optional = true)
-    @JoinColumn(name="user_id")//这里设置JoinColum设置了外键的名字，并且orderItem是关系维护端
     public UserEntity user;
 
     public int getId() {
@@ -53,6 +41,13 @@ public class FeedbackEntity implements Serializable{
         this.content = content;
     }
 
+    public List<Image> getImages() {
+        return images;
+    }
+
+    public void setImages(List<Image> images) {
+        this.images = images;
+    }
 
     public Date getTimestamp() {
         return timestamp;
@@ -68,13 +63,5 @@ public class FeedbackEntity implements Serializable{
 
     public void setUser(UserEntity user) {
         this.user = user;
-    }
-
-    public List<FileEntity> getImages() {
-        return images;
-    }
-
-    public void setImages(List<FileEntity> images) {
-        this.images = images;
     }
 }

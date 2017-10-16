@@ -8,6 +8,7 @@ import java.util.List;
 public class VideoEntity {
 
     @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
     public int id;
     public String name;
     public String path;

@@ -41,6 +41,7 @@ import java.util.List;
 @Service
 public class UploadComponent {
 
+    public static final int MD5_ACTION = 99;
     private String fileDir = "/uploadfiles/";
     private static Logger logger = LoggerFactory.getLogger(UploadComponent.class);
 
@@ -73,16 +74,28 @@ public class UploadComponent {
 //        }
 
         if(fileUploadReqBody != null){
-            if(fileUploadReqBody.action==4){
+            switch (fileUploadReqBody.action){
+                case 1:
+                    fileDir = fileDir+"image/";
+                    break;
+                case 2:
+                    fileDir = fileDir+"video/";
+                    break;
+                case 3:
+                    fileDir = fileDir+"audio/";
+                    break;
+            }
+
+            if(fileUploadReqBody.action==MD5_ACTION){
                 if(fileUploadReqBody != null  && fileUploadReqBody.getMd5s() != null){
                     List<String> md5s = fileUploadReqBody.getMd5s();
                     files = uploadCheckExsitAction(md5s);
                 }
             } else {
-                files = upload(request, fileDir);
+                files = upload(request, fileDir, fileUploadReqBody.action);
             }
 
-            if(fileUploadReqBody.action!=4){
+            if(fileUploadReqBody.action!=MD5_ACTION){
                 if(files.size() > 0){
                     respBody.desc = "上传成功";
                     respBody.status = 0;
@@ -95,7 +108,7 @@ public class UploadComponent {
                 respBody.status = 0;
             }
         } else {
-            files = upload(request, fileDir);
+            files = upload(request, fileDir, 1);
             respBody.desc = "操作成功";
             respBody.status = 0;
         }
@@ -110,7 +123,14 @@ public class UploadComponent {
         return gson.toJson(apiData);
     }
 
-    public List<FileEntity> upload(HttpServletRequest request, String fileDir){
+    /**
+     * 上传图片
+     * @param request 请求内容
+     * @param fileDir 保存路径
+     * @param type 文件类型 1 图片， 2 视频， 3 音频， 4 其他
+     * @return
+     */
+    public List<FileEntity> upload(HttpServletRequest request, String fileDir, int type){
         String basePath = request.getSession().getServletContext().getRealPath("/");
         //将当前上下文初始化给  CommonsMutipartResolver （多部分解析器）
         CommonsMultipartResolver multipartResolver=new CommonsMultipartResolver(
@@ -133,7 +153,7 @@ public class UploadComponent {
 
             List<MultipartFile> mutilFiles = multiRequest.getFiles("file[]");
 
-            return saveMultiFiles(mutilFiles, basePath, fileDir);
+            return saveMultiFiles(mutilFiles, basePath, fileDir, type);
         }
         return new ArrayList<>();
     }
@@ -167,9 +187,10 @@ public class UploadComponent {
      * 保存多文件
      * @param mutilFiles 文件列表
      * @param path 保存的文件夹路径
+     * @param type 文件类型 1 图片， 2 视频， 3 音频， 4 其他
      * @return 保存后的文件列表files
      */
-    private List<FileEntity> saveMultiFiles(List<MultipartFile> mutilFiles,String basePath, String path){
+    private List<FileEntity> saveMultiFiles(List<MultipartFile> mutilFiles,String basePath, String path, int type){
         List<FileEntity> files = new ArrayList<>();
         if(mutilFiles != null && mutilFiles.size() > 0){
             for (MultipartFile file : mutilFiles){
@@ -207,6 +228,7 @@ public class UploadComponent {
 
                         fileEntity.setPath(path+fileEntity.getName());
                         fileEntity.setTimestamp(new Date());
+                        fileEntity.setType(type);
                         uploadFileRepository.save(fileEntity);
                         if(!StringUtils.isEmpty(fileEntity.getMd5())){
                             List<FileEntity> byMd5 = uploadFileRepository.findByMd5(fileEntity.getMd5());

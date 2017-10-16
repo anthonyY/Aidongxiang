@@ -1,9 +1,6 @@
 package com.dongxiang.model.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "audio", schema = "aidongxiang", catalog = "")
@@ -11,6 +8,7 @@ public class AudioEntity {
 
 
     @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
     public int id;
     public String name;
     public String path;

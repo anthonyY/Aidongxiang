@@ -5,9 +5,9 @@ import com.dongxiang.model.comm.*;
 import com.dongxiang.model.component.UploadComponent;
 import com.dongxiang.model.entity.AudioEntity;
 import com.dongxiang.model.entity.FileEntity;
-import com.dongxiang.model.entity.StatisticsEntity;
+import com.dongxiang.model.entity.StatisticsAudioEntity;
 import com.dongxiang.model.repository.AudioRepository;
-import com.dongxiang.model.repository.StatisticsRepository;
+import com.dongxiang.model.repository.StatisticsAudioRepository;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ public class AudioController {
     @Autowired
     AudioRepository audioRepository;
     @Autowired
-    StatisticsRepository statisticsRepository;
+    StatisticsAudioRepository statisticsAudioRepository;
     @Autowired
     UploadComponent uploadComponent;
 
@@ -41,24 +41,29 @@ public class AudioController {
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         List<AudioEntity> list = audioRepository.findAll();
         List<AudioListEntity> entitylist = new ArrayList<>();
-        for (AudioEntity audioEntity: list){
-            AudioListEntity entity = new AudioListEntity();
-            entity.setDuration(audioEntity.duration);
-            entity.setId(audioEntity.id);
-            entity.setImagePath(audioEntity.imagePath);
-            entity.setName(audioEntity.name);
-            entity.setPath(audioEntity.path);
-            entity.setPrice(audioEntity.price);
-            StatisticsEntity statistics = statisticsRepository.findOne(audioEntity.getId());
-            if(statistics != null){
-//                statistics.getStatDownload();
-                entity.setStatPraise(statistics.getStatPraise());
-                entity.setStatWatch(statistics.getStatWatch());
-            }
-            entitylist.add(entity);
-        }
 
+        int total = 0;
+        if(list != null){
+            total = list.size();
+            for (AudioEntity audioEntity: list){
+                AudioListEntity entity = new AudioListEntity();
+                entity.setDuration(audioEntity.duration);
+                entity.setId(audioEntity.id);
+                entity.setImagePath(audioEntity.imagePath);
+                entity.setName(audioEntity.name);
+                entity.setPath(audioEntity.path);
+                entity.setPrice(audioEntity.price);
+                StatisticsAudioEntity statistics = statisticsAudioRepository.findOne(audioEntity.getId());
+                if(statistics != null){
+//                statistics.getStatDownload();
+                    entity.setStatPraise(statistics.getStatPraise());
+                    entity.setStatWatch(statistics.getStatWatch());
+                }
+                entitylist.add(entity);
+            }
+        }
         AudioListRespBody respBody = new AudioListRespBody(entitylist);
+        respBody.setTotal(total);
         respBody.status = 0;
         respBody.desc = "操作成功";
         return gson.toJson(new ApiData<>(respBody));
@@ -102,21 +107,21 @@ public class AudioController {
             entity.setName(audio.name);
             entity.setPath(audio.path);
             entity.setPrice(audio.price);
-            StatisticsEntity statistics = statisticsRepository.findOne(audio.getId());
+            StatisticsAudioEntity statistics = statisticsAudioRepository.findOne(audio.getId());
             if(statistics != null){
                 entity.setStatDownload(statistics.getStatDownload());
                 entity.setStatPraise(statistics.getStatPraise());
                 int statWatch = statistics.getStatWatch()+1;
                 entity.setStatWatch(statWatch);
-                statisticsRepository.updateStatisticsWatch(statWatch, audio.id);
+                statisticsAudioRepository.updateStatisticsWatch(statWatch, audio.id);
             } else {
-                statistics = new StatisticsEntity();
+                statistics = new StatisticsAudioEntity();
                 entity.setStatDownload(0);
                 entity.setStatPraise(0);
                 int statWatch = statistics.getStatWatch()+1;
                 entity.setStatWatch(statWatch);
                 statistics.setStatWatch(statWatch);
-                statisticsRepository.save(statistics);
+                statisticsAudioRepository.save(statistics);
             }
 //            entity.setIsCollection(audio.);
 //            entity.setIsPraise(audio.);
@@ -141,14 +146,14 @@ public class AudioController {
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         DefaultRespBody respBody = new DefaultRespBody();
         try {
-            StatisticsEntity statistics = statisticsRepository.findOne(id);
+            StatisticsAudioEntity statistics = statisticsAudioRepository.findOne(id);
             if(statistics != null){
                 int statDownload = statistics.getStatDownload()+1;
-                statisticsRepository.updateStatisticsDownload(statDownload, id);
+                statisticsAudioRepository.updateStatisticsDownload(statDownload, id);
             } else {
-                statistics = new StatisticsEntity();
+                statistics = new StatisticsAudioEntity();
                 statistics.setStatDownload(1);
-                statisticsRepository.save(statistics);
+                statisticsAudioRepository.save(statistics);
             }
             respBody.status = 0;
             respBody.desc = "操作成功";
@@ -171,14 +176,14 @@ public class AudioController {
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         DefaultRespBody respBody = new DefaultRespBody();
         try {
-            StatisticsEntity statistics = statisticsRepository.findOne(id);
+            StatisticsAudioEntity statistics = statisticsAudioRepository.findOne(id);
             if(statistics != null){
                 int statPraise = statistics.getStatPraise()+1;
-                statisticsRepository.updateStatisticsPraise(statPraise, id);
+                statisticsAudioRepository.updateStatisticsPraise(statPraise, id);
             } else {
-                statistics = new StatisticsEntity();
+                statistics = new StatisticsAudioEntity();
                 statistics.setStatDownload(1);
-                statisticsRepository.save(statistics);
+                statisticsAudioRepository.save(statistics);
             }
             respBody.status = 0;
             respBody.desc = "操作成功";
@@ -197,7 +202,7 @@ public class AudioController {
     {
         String fileDir = "/audios/";
         //上传文件保存
-        List<FileEntity> files = uploadComponent.upload(request,fileDir);
+        List<FileEntity> files = uploadComponent.upload(request,fileDir, 1);
 
         if(files.size() > 0){
             //下面是存储视频数据
